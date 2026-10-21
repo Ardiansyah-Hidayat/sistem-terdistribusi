@@ -31,34 +31,67 @@ LOCAL_IP = get_local_ip()
 COORDINATOR_URL = f"http://127.0.0.1:{COORDINATOR_PORT}"
 LAN_COORDINATOR_URL = f"http://{LOCAL_IP}:{COORDINATOR_PORT}"
 
+# Cluster Deployment Mode:
+# "local" : 3 node berjalan sebagai proses Python lokal di 127.0.0.1 (Port 8001, 8002, 8003). Tanpa butuh VirtualBox!
+# "vm"    : 3 node berjalan di VirtualBox Ubuntu Server VM (192.168.56.102, .103, .104).
+CLUSTER_MODE = os.environ.get("CLUSTER_MODE", "local").lower()
+
 # Storage Nodes configuration
-# Storage nodes remain private and bound strictly to loopback (127.0.0.1)
-STORAGE_NODES = {
-    "node1": {
-        "id": "node1",
-        "name": "Storage Node 1 (VirtualBox VM)",
-        "host": "192.168.56.102",
-        "port": 8001,
-        "url": "http://192.168.56.102:8001",
-        "dir": STORAGE_BASE_DIR / "node1"
-    },
-    "node2": {
-        "id": "node2",
-        "name": "Storage Node 2 (VirtualBox VM)",
-        "host": "192.168.56.103",
-        "port": 8002,
-        "url": "http://192.168.56.103:8002",
-        "dir": STORAGE_BASE_DIR / "node2"
-    },
-    "node3": {
-        "id": "node3",
-        "name": "Storage Node 3 (VirtualBox VM)",
-        "host": "192.168.56.104",
-        "port": 8003,
-        "url": "http://192.168.56.104:8003",
-        "dir": STORAGE_BASE_DIR / "node3"
+if CLUSTER_MODE == "vm":
+    STORAGE_NODES = {
+        "node1": {
+            "id": "node1",
+            "name": "Storage Node 1 (VirtualBox VM)",
+            "host": "192.168.56.102",
+            "port": 8001,
+            "url": "http://192.168.56.102:8001",
+            "dir": STORAGE_BASE_DIR / "node1"
+        },
+        "node2": {
+            "id": "node2",
+            "name": "Storage Node 2 (VirtualBox VM)",
+            "host": "192.168.56.103",
+            "port": 8002,
+            "url": "http://192.168.56.103:8002",
+            "dir": STORAGE_BASE_DIR / "node2"
+        },
+        "node3": {
+            "id": "node3",
+            "name": "Storage Node 3 (VirtualBox VM)",
+            "host": "192.168.56.104",
+            "port": 8003,
+            "url": "http://192.168.56.104:8003",
+            "dir": STORAGE_BASE_DIR / "node3"
+        }
     }
-}
+else:
+    STORAGE_NODES = {
+        "node1": {
+            "id": "node1",
+            "name": "Storage Node 1 (Local)",
+            "host": "127.0.0.1",
+            "port": 8001,
+            "url": "http://127.0.0.1:8001",
+            "dir": STORAGE_BASE_DIR / "node1"
+        },
+        "node2": {
+            "id": "node2",
+            "name": "Storage Node 2 (Local)",
+            "host": "127.0.0.1",
+            "port": 8002,
+            "url": "http://127.0.0.1:8002",
+            "dir": STORAGE_BASE_DIR / "node2"
+        },
+        "node3": {
+            "id": "node3",
+            "name": "Storage Node 3 (Local)",
+            "host": "127.0.0.1",
+            "port": 8003,
+            "url": "http://127.0.0.1:8003",
+            "dir": STORAGE_BASE_DIR / "node3"
+        }
+    }
+
 
 # Replication Policy
 DEFAULT_REPLICATION_FACTOR = 2

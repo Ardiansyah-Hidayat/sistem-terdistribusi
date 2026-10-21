@@ -9,6 +9,7 @@ class NodeTracker:
     def __init__(self):
         self.nodes_config = STORAGE_NODES
         self.node_status: Dict[str, Dict[str, Any]] = {}
+        self.simulated_offline = set()
 
         # Initialize default state
         for node_id, config in self.nodes_config.items():
@@ -39,7 +40,7 @@ class NodeTracker:
         is_online = (current_status == "online")
 
         if is_online:
-            # STOP the real process on the VM
+            # STOP the real process on the VM or flag as offline locally
             if host not in ("127.0.0.1", "localhost"):
                 try:
                     ssh = paramiko.SSHClient()
@@ -49,11 +50,14 @@ class NodeTracker:
                     ssh.close()
                 except Exception as e:
                     print(f"[Remote Kill Error] {node_id} on {host}:{port} -> {e}")
+            else:
+                self.simulated_offline.add(node_id)
+
             self.node_status[node_id]["status"] = "offline"
-            self.node_status[node_id]["error"] = "Process Stopped"
+            self.node_status[node_id]["error"] = "Simulated Failure (Offline)"
             return False
         else:
-            # START the real process on the VM
+            # START the real process on the VM or clear offline flag locally
             if host not in ("127.0.0.1", "localhost"):
                 try:
                     ssh = paramiko.SSHClient()
@@ -65,11 +69,21 @@ class NodeTracker:
                     ssh.close()
                 except Exception as e:
                     print(f"[Remote Start Error] {node_id} on {host}:{port} -> {e}")
+            else:
+                self.simulated_offline.discard(node_id)
+
             await asyncio.sleep(1.0)
             return True
 
     async def check_node_health(self, node_id: str, client: httpx.AsyncClient = None) -> Dict[str, Any]:
         """Ping a single storage node's /health endpoint."""
+        if node_id in self.simulated_offline:
+            self.node_status[node_id].update({
+                "status": "offline",
+                "error": "Simulated Failure (Offline)"
+            })
+            return self.node_status[node_id]
+
         config = self.nodes_config[node_id]
         url = f"{config['url']}/health"
 
@@ -112,7 +126,7 @@ class NodeTracker:
         """Return list of online node IDs."""
         return [
             node_id for node_id, info in self.node_status.items()
-            if info["status"] == "online"
+            if info["status"] == "online" and node_id not in self.simulated_offline
         ]
 
     def select_replica_nodes(self, count: int = 2) -> List[str]:

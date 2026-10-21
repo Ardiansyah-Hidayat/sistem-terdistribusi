@@ -35,14 +35,22 @@ pip install -r requirements.txt
 ```
 
 ### 2. Menjalankan Sistem
-- **Menjalankan Seluruh Sistem (Mode Cepat)**:
-  ```bash
-  python run_system.py
-  ```
-  Atau gunakan script peluncur:
-  ```cmd
-  START_ALL.bat
-  ```
+
+Sistem mendukung 2 mode:
+
+#### ⚡ Mode A: Mode Lokal (Tanpa VirtualBox / Tanpa Ngrok) - **Direkomendasikan untuk Teman/Pengguna Baru**
+Tidak perlu install VirtualBox atau download ISO Ubuntu. Cukup klik ganda:
+```cmd
+START_LOCAL.bat
+```
+*(atau jalankan perintah `python run_system.py`)*.  
+Perintah ini akan secara otomatis menyalakan Koordinator (Port 8000) dan ketiga Storage Node (Port 8001, 8002, 8003) sebagai proses lokal. Fitur replikasi 2x dan simulasi failover berjalan penuh 100%!
+
+#### 🖥️ Mode B: Mode Virtual Machine (3 VM Ubuntu Server)
+Jika Anda memiliki VirtualBox dengan 3 VM Ubuntu Server terkonfigurasi:
+```cmd
+START_ALL.bat
+```
 
 - **Membuka Dashboard**:
   Buka browser dan akses:
@@ -53,11 +61,9 @@ pip install -r requirements.txt
   - **Tamu**: Klik tombol *"Masuk sebagai tamu"*
 
 ### 3. Mematikan Sistem
-Untuk mematikan semua proses dan melepaskan sumber daya memori:
-```cmd
-STOP_ALL.bat
-```
-*(atau jalankan `python stop_all.py`)*
+Untuk mematikan semua proses dan melepaskan sumber daya:
+- Jika di Mode Lokal: Cukup tekan `Ctrl + C` di jendela terminal `run_system.py`.
+- Jika di Mode VM: Klik ganda `STOP_ALL.bat` *(atau jalankan `python stop_all.py`)*.
 
 ---
 
