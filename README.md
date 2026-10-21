@@ -20,9 +20,9 @@ Repositori ini mendukung **2 cara menjalankan**:
 
 ---
 
-## 🚀 Panduan 1: Menjalankan Mode Lokal (Direkomendasikan untuk Pemula/Teman)
+## 🚀 Panduan Mode Lokal
 
-Mode ini **TIDAK MEMBUTUHKAN** VirtualBox, ISO Ubuntu, atau Ngrok. Sangat hemat RAM dan bisa langsung dijalankan di Windows/Linux/macOS apa saja.
+Mode ini tidak memerlukan VirtualBox, ISO Ubuntu, atau Ngrok. Koordinator dan seluruh storage node berjalan sebagai proses lokal mandiri.
 
 ### 1. Prasyarat
 - Python 3.10 atau versi lebih baru.
@@ -58,9 +58,9 @@ Tekan `Ctrl + C` di jendela terminal `run_system.py`.
 
 ---
 
-## 🖥️ Panduan 2: Menjalankan Mode Virtual Machine (Setup Lengkap Sesuai Paper)
+## 🖥️ Panduan Detail (Virtual Machine)
 
-Gunakan mode ini jika Anda ingin mereplikasi lingkungan komputasi terdistribusi secara penuh dengan 3 mesin virtual independen.
+Panduan setup lengkap untuk mereplikasi lingkungan komputasi terdistribusi menggunakan 3 Virtual Machine Ubuntu Server terpisah di VirtualBox.
 
 ### 1. Prasyarat Tambahan
 - **Oracle VirtualBox 7.x** terpasang di komputer host.
