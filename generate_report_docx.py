@@ -59,8 +59,8 @@ def create_report():
 
     sub_p = doc.add_paragraph()
     sub_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    sub_p.paragraph_format.space_after = Pt(20)
-    run_sub = sub_p.add_run("Dokumentasi Arsitektur Sistem, Spesifikasi Lingkungan, Protokol Komunikasi, dan Pengujian Toleransi Kesalahan (Fault Tolerance)")
+    sub_p.paragraph_format.space_after = Pt(16)
+    run_sub = sub_p.add_run("Dokumentasi Komprehensif Arsitektur Sistem, Alur Kerja Replikasi, Mekanisme Toleransi Kesalahan (Failover), dan Evaluasi Empiris")
     run_sub.font.name = 'Times New Roman'
     run_sub.font.size = Pt(11)
     run_sub.font.italic = True
@@ -117,6 +117,18 @@ def create_report():
         r2 = p.add_run(text)
         r2.font.name = 'Times New Roman'
         r2.font.size = Pt(11)
+        return p
+
+    def add_caption(text):
+        p = doc.add_paragraph()
+        p.paragraph_format.space_before = Pt(4)
+        p.paragraph_format.space_after = Pt(10)
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = p.add_run(text)
+        run.font.name = 'Times New Roman'
+        run.font.size = Pt(10)
+        run.font.italic = True
+        run.font.color.rgb = RGBColor(0x47, 0x55, 0x69)
         return p
 
     # ==================== ABSTRAK ====================
@@ -197,8 +209,18 @@ def create_report():
     add_body(
         "Topologi jaringan klaster dirancang menggunakan skema Host-Only Networking pada Oracle VirtualBox (Subnet 192.168.56.0/24). "
         "Komputer Host bertindak sebagai Master Coordinator yang berkomunikasi secara langsung dengan 3 mesin virtual independen yang "
-        "menjalankan sistem operasi Ubuntu Server 24.04 LTS."
+        "menjalankan sistem operasi Ubuntu Server 24.04 LTS. Komponen arsitektur dan interaksi antarsimpul diperlihatkan pada Gambar 1."
     )
+
+    # INSERT DIAGRAM 1
+    diag1_path = os.path.join(os.path.dirname(__file__), "diagrams", "arsitektur_sistem.png")
+    if os.path.exists(diag1_path):
+        p_img1 = doc.add_paragraph()
+        p_img1.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_img1.paragraph_format.space_before = Pt(8)
+        p_img1.paragraph_format.space_after = Pt(2)
+        p_img1.add_run().add_picture(diag1_path, width=Inches(6.2))
+        add_caption("Gambar 1: Diagram Blok Arsitektur Master-Worker Klaster Penyimpanan Terdistribusi")
 
     # Table Topologi
     table_topo = doc.add_table(rows=5, cols=5)
@@ -238,22 +260,38 @@ def create_report():
 
     add_body("", space_after=6)
 
-    add_h2("3.2 Alur Replikasi Berkas (File Upload & Replication Workflow)")
+    add_h2("3.2 Alur Kerja Replikasi dan Toleransi Kesalahan (Failover Workflow)")
     add_body(
-        "Alur kerja ketika pengguna mengunggah berkas baru adalah sebagai berikut:\n"
+        "Sistem memiliki dua alur kerja utama yang menjaga integritas data dan ketersediaan layanan, yaitu alur penulisan "
+        "(Replication Write) dan alur pembacaan toleran kegagalan (Failover Read). Rincian alur kerja diperlihatkan pada Gambar 2."
+    )
+
+    # INSERT DIAGRAM 2
+    diag2_path = os.path.join(os.path.dirname(__file__), "diagrams", "alur_failover_replikasi.png")
+    if os.path.exists(diag2_path):
+        p_img2 = doc.add_paragraph()
+        p_img2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_img2.paragraph_format.space_before = Pt(8)
+        p_img2.paragraph_format.space_after = Pt(2)
+        p_img2.add_run().add_picture(diag2_path, width=Inches(6.3))
+        add_caption("Gambar 2: Diagram Alur Kerja: (A) Replikasi Berkas 2x dan (B) Mekanisme Failover Unduhan Otomatis")
+
+    add_h2("3.3 Penjelasan Alur Replikasi Berkas (Upload)")
+    add_body(
+        "Tahapan operasional saat pengguna mengunggah berkas baru (Gambar 2A) adalah sebagai berikut:\n"
         "1. Klien mengirimkan file melalui antarmuka web (POST /api/upload) dalam format multipart/form-data.\n"
         "2. Koordinator membaca aliran byte berkas dan memvalidasi ukuran serta nama berkas.\n"
-        "3. Koordinator memanggil 'node_tracker.select_replica_nodes(count=2)'. Algoritma ini memeriksa daftar seluruh node yang berstatus 'online' "
-        "dan mengurutkannya berdasarkan jumlah berkas terendah ('file_count' terkecil) untuk menjaga load balancing.\n"
+        "3. Koordinator memanggil fungsi 'node_tracker.select_replica_nodes(count=2)'. Algoritma ini memeriksa daftar seluruh simpul yang "
+        "berstatus 'online' dan mengurutkannya berdasarkan jumlah berkas terendah ('file_count' terkecil) guna menjamin pemerataan beban penyimpanan (Load Balancing).\n"
         "4. Koordinator membuat entri metadata sementara dan mengeksekusi pengunggahan paralel asinkron ke endpoint '/store/{file_id}' pada kedua node terpilih menggunakan pustaka HTTPX.\n"
         "5. Storage Node menerima berkas, menyimpannya di path 'storage_data/{node_id}/{file_id}_{filename}', dan mengembalikan status 200 OK.\n"
         "6. Koordinator memverifikasi bahwa berkas berhasil ditulis ke kedua simpul, mencatat ID node lokasi ke metadata.json, lalu mengirimkan konfirmasi sukses ke pengguna."
     )
 
-    add_h2("3.3 Alur Failover Unduhan Berkas (Failover Download Workflow)")
+    add_h2("3.4 Penjelasan Alur Failover Unduhan (Download Retrieval)")
     add_body(
-        "Alur kerja penanganan kegagalan saat unduhan berkas (GET /api/download/{file_id}) dirancang dengan prinsip nir-interupsi:\n"
-        "1. Klien mengklik tombol 'Unduh' pada dashboard web.\n"
+        "Tahapan operasional penanganan kegagalan saat unduhan berkas (Gambar 2B) dirancang dengan prinsip transparansi penuh:\n"
+        "1. Klien mengklik tombol 'Unduh' pada dashboard web (GET /api/download/{file_id}).\n"
         "2. Koordinator mengekstrak daftar node penyimpan berkas dari katalog metadata (misal: [node1, node2]).\n"
         "3. Koordinator menyaring simpul tersebut dengan daftar node yang saat ini berstatus 'online' (misal: node1 offline, candidate = [node2]).\n"
         "4. Koordinator mencoba melakukan request retrieval ke kandidat pertama. Jika kandidat pertama offline atau mengalami kendala jaringan, "
@@ -262,7 +300,7 @@ def create_report():
         "yang membuktikan simpul mana yang melayani unduhan."
     )
 
-    add_h2("3.4 Desain Keamanan dan Kontrol Akses (Role-Based Access Control / RBAC)")
+    add_h2("3.5 Desain Keamanan dan Kontrol Akses (Role-Based Access Control / RBAC)")
     add_body(
         "Sistem menerapkan pengamanan berbasis token sesi (X-Auth-Token) yang mengautentikasi dua kelompok peran:\n"
         "• Administrator (Username: 'ardi', Password: 'ardi123'): Memiliki otorisasi penuh atas klaster, termasuk hak menghapus berkas tunggal, "
@@ -365,9 +403,20 @@ def create_report():
         run.font.name = 'Times New Roman'
         run.font.size = Pt(10.5)
 
-    output_path = os.path.join(os.path.dirname(__file__), "Laporan_Distributed_Storage_System.docx")
-    doc.save(output_path)
-    print(f"[OK] Report successfully generated at: {output_path}")
+    output_path = os.path.join(os.path.dirname(__file__), "Laporan_Distributed_Storage_System_Lengkap.docx")
+    try:
+        doc.save(output_path)
+        print(f"[OK] Report with Diagrams successfully generated at: {output_path}")
+    except Exception as e:
+        print(f"Error saving: {e}")
+    
+    # Also save to the original name if not locked
+    orig_path = os.path.join(os.path.dirname(__file__), "Laporan_Distributed_Storage_System.docx")
+    try:
+        doc.save(orig_path)
+        print(f"[OK] Also updated: {orig_path}")
+    except Exception:
+        pass
 
 if __name__ == "__main__":
     create_report()
