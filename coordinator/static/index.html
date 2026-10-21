@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klaster Penyimpanan Terdistribusi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Palette: navy (structure) + blue (action) + slate (canvas) */
+            --navy: #1e293b;
+            --navy-2: #334155;
+
+            --bg: #eef2f7;
+            --surface: #ffffff;
+            --surface-muted: #f1f5f9;
+            --border: #e2e8f0;
+            --border-strong: #cbd5e1;
+
+            --text: #0f172a;
+            --text-2: #475569;
+            --text-3: #94a3b8;
+
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-soft: #eff6ff;
+
+            --ok: #16a34a;
+            --bad: #dc2626;
+            --bad-hover: #b91c1c;
+            --bad-soft: #fef2f2;
+
+            --radius: 6px;
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body { background: var(--bg); }
+
+        body {
+            font-family: var(--sans);
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .mono { font-family: var(--mono); font-size: 12.5px; }
+        .muted { color: var(--text-2); }
+        .faint { color: var(--text-3); }
+
+        /* ---------- Buttons ---------- */
+        .btn {
+            font: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            height: 32px;
+            padding: 0 12px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-strong);
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background-color .12s, border-color .12s, color .12s;
+        }
+        .btn:hover:not(:disabled) { background: var(--surface-muted); }
+        .btn:disabled { opacity: .45; cursor: not-allowed; }
+        .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+        .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .btn-primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+        .btn-danger { background: var(--bad); border-color: var(--bad); color: #fff; }
+        .btn-danger:hover:not(:disabled) { background: var(--bad-hover); border-color: var(--bad-hover); }
+
+        .btn-ghost-danger { color: var(--bad); }
+        .btn-ghost-danger:hover:not(:disabled) { background: var(--bad-soft); border-color: #fecaca; }
+
+        .btn-sm { height: 28px; padding: 0 10px; font-size: 12.5px; }
+
+        .btn-link {
+            font: inherit; font-size: 13px; background: none; border: none; padding: 0;
+            color: var(--text-2); cursor: pointer;
+        }
+        .btn-link:hover { color: var(--text); text-decoration: underline; }
+
+        /* ---------- Login ---------- */
+        #login-view {
+            min-height: 100vh;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .login-box {
+            width: 100%; max-width: 380px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-top: 3px solid var(--navy);
+            border-radius: 10px;
+            padding: 32px 28px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+        }
+
+        .login-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+        .login-sub { color: var(--text-2); margin-top: 4px; margin-bottom: 28px; }
+
+        .field { margin-bottom: 14px; }
+        .field label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+        .field input {
+            width: 100%;
+            height: 36px;
+            padding: 0 10px;
+            font: inherit;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius);
+            background: var(--surface);
+            color: var(--text);
+        }
+        .field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+        .login-box .btn { width: 100%; height: 36px; }
+
+        .divider {
+            display: flex; align-items: center; gap: 12px;
+            color: var(--text-3); font-size: 12px; margin: 22px 0;
+        }
+        .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+        .guest-note { font-size: 12.5px; color: var(--text-2); margin-top: 8px; text-align: center; }
+
+        /* ---------- App shell ---------- */
+        #app-view { display: none; }
+
+        .topbar {
+            height: 52px;
+            background: var(--navy);
+            color: #fff;
+            position: sticky; top: 0; z-index: 10;
+        }
+        .topbar .brand span { color: #94a3b8; }
+        .topbar .session .role { color: #cbd5e1; }
+        .topbar .session .role strong { color: #fff; }
+        .topbar .btn {
+            background: transparent; color: #e2e8f0; border-color: #475569;
+        }
+        .topbar .btn:hover:not(:disabled) { background: var(--navy-2); color: #fff; }
+        .topbar-inner {
+            max-width: 1080px; height: 100%; margin: 0 auto; padding: 0 24px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .brand { font-weight: 600; font-size: 14px; letter-spacing: -0.01em; }
+        .brand span { color: var(--text-3); font-weight: 400; margin-left: 8px; }
+
+        .session { display: flex; align-items: center; gap: 16px; font-size: 13px; }
+        .session .role { color: var(--text-2); }
+        .session .role strong { color: var(--text); font-weight: 500; }
+
+        main { max-width: 1080px; margin: 0 auto; padding: 28px 24px 64px; }
+
+        .summary {
+            display: flex; flex-wrap: wrap; gap: 0;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--surface);
+            margin-bottom: 32px;
+        }
+        .summary-item { flex: 1; min-width: 140px; padding: 14px 16px; border-right: 1px solid var(--border); }
+        .summary-item:last-child { border-right: none; }
+        .summary-label { font-size: 12px; color: var(--text-2); }
+        .summary-value { font-family: var(--mono); font-size: 20px; font-weight: 500; margin-top: 2px; color: var(--navy); }
+        .summary { border-top: 3px solid var(--accent); }
+
+        section { margin-bottom: 36px; }
+
+        .section-head {
+            display: flex; align-items: flex-end; justify-content: space-between;
+            gap: 12px; margin-bottom: 10px;
+        }
+        .section-title { font-size: 14px; font-weight: 600; }
+        .section-desc { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+
+        /* ---------- Tables ---------- */
+        .table-wrap {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--surface);
+            overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            text-align: left;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-2);
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface-muted);
+            white-space: nowrap;
+        }
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        tr:last-child td { border-bottom: none; }
+        td.right, th.right { text-align: right; }
+        td.actions { text-align: right; white-space: nowrap; }
+        td.actions .btn + .btn { margin-left: 6px; }
+
+        tr.is-offline td { color: var(--text-3); }
+        tr.is-offline td .node-name { color: var(--text-2); }
+
+        .node-name { font-weight: 500; }
+
+        .status { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; }
+        .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .dot.ok { background: var(--ok); }
+        .dot.bad { background: var(--bad); }
+        .status.ok { color: var(--text); }
+        .status.bad { color: var(--bad); }
+
+        .file-name { font-weight: 500; word-break: break-all; }
+
+        .replicas { font-family: var(--mono); font-size: 12.5px; }
+        .replica-off { color: var(--text-3); text-decoration: line-through; }
+        .replica-none { color: var(--bad); font-family: var(--sans); font-size: 13px; }
+
+        .file-unavailable { color: var(--bad); font-size: 12px; margin-top: 2px; }
+
+        .empty {
+            padding: 36px 16px;
+            text-align: center;
+            color: var(--text-2);
+            font-size: 13px;
+        }
+
+        /* ---------- Drop zone ---------- */
+        .dropzone {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 12px;
+            min-height: 200px;
+            padding: 40px 24px;
+            margin-bottom: 14px;
+            text-align: center;
+            border: 2px dashed #93c5fd;
+            border-radius: 10px;
+            background: #f8fbff;
+            cursor: pointer;
+            transition: border-color .12s, background-color .12s;
+        }
+        .dropzone:hover, .dropzone.drag { border-color: var(--accent); background: var(--accent-soft); }
+        .dropzone .dz-icon {
+            width: 56px; height: 56px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: #dbeafe; color: var(--accent);
+        }
+        .dropzone-main { font-weight: 600; font-size: 15px; color: var(--navy); }
+        .dropzone-sub { font-size: 12.5px; color: var(--text-2); }
+        .dropzone.busy { pointer-events: none; opacity: .6; }
+
+        /* ---------- Access control ---------- */
+        #admin-panel { margin-bottom: 24px; }
+        .settings {
+            display: grid; grid-template-columns: 1fr 1fr;
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--navy);
+            border-radius: var(--radius);
+            background: var(--surface);
+        }
+        .setting {
+            display: flex; align-items: center; justify-content: space-between; gap: 24px;
+            padding: 14px 16px; border-right: 1px solid var(--border);
+        }
+        .setting:last-child { border-right: none; }
+        .setting-title { font-weight: 500; }
+        .setting-desc { font-size: 13px; color: var(--text-2); margin-top: 2px; max-width: 620px; }
+
+        .switch { position: relative; width: 34px; height: 20px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch .track {
+            position: absolute; inset: 0; border-radius: 999px;
+            background: var(--border-strong); cursor: pointer; transition: background-color .15s;
+        }
+        .switch .track::after {
+            content: ""; position: absolute; top: 2px; left: 2px;
+            width: 16px; height: 16px; border-radius: 50%; background: #fff;
+            box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: transform .15s;
+        }
+        .switch input:checked + .track { background: var(--accent); }
+        .switch input:checked + .track::after { transform: translateX(14px); }
+        .switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+        /* ---------- Toast ---------- */
+        #toast-stack {
+            position: fixed; right: 20px; bottom: 20px; z-index: 50;
+            display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+        }
+        .toast {
+            max-width: 380px;
+            padding: 10px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--text-3);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 12px rgba(0,0,0,.06);
+            font-size: 13px;
+            opacity: 0; transform: translateY(6px);
+            transition: opacity .15s, transform .15s;
+        }
+        .toast.show { opacity: 1; transform: none; }
+        .toast.success { border-left-color: var(--ok); }
+        .toast.error { border-left-color: var(--bad); }
+
+        /* ---------- Modal ---------- */
+        #modal {
+            position: fixed; inset: 0; z-index: 40;
+            background: rgba(24,24,27,.35);
+            display: none; align-items: center; justify-content: center; padding: 24px;
+        }
+        #modal.open { display: flex; }
+        .modal-box {
+            width: 100%; max-width: 400px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 12px 32px rgba(0,0,0,.12);
+        }
+        .modal-title { font-size: 15px; font-weight: 600; }
+        .modal-body { color: var(--text-2); margin-top: 6px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+        @media (max-width: 720px) {
+            .topbar-inner, main { padding-left: 16px; padding-right: 16px; }
+            .brand span { display: none; }
+            .summary-item { min-width: 50%; border-bottom: 1px solid var(--border); }
+            .hide-sm { display: none; }
+            .settings { grid-template-columns: 1fr; }
+            .setting { align-items: flex-start; border-right: none; border-bottom: 1px solid var(--border); }
+            .setting:last-child { border-bottom: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= LOGIN ================= -->
+    <div id="login-view">
+        <div class="login-box">
+            <div class="login-title">Klaster Penyimpanan Terdistribusi</div>
+            <div class="login-sub">Masuk untuk mengelola node dan berkas.</div>
+
+            <form id="admin-form" autocomplete="on">
+                <div class="field">
+                    <label for="admin-user">Nama pengguna</label>
+                    <input id="admin-user" type="text" autocomplete="username" required>
+                </div>
+                <div class="field">
+                    <label for="admin-pass">Kata sandi</label>
+                    <input id="admin-pass" type="password" autocomplete="current-password" required>
+                </div>
+                <button id="btn-submit-admin" type="submit" class="btn btn-primary">Masuk</button>
+            </form>
+
+            <div class="divider">atau</div>
+
+            <button id="btn-login-guest" type="button" class="btn">Masuk sebagai tamu</button>
+            <div id="guest-blocked-notice" class="guest-note" style="display:none;">
+                Akses tamu sedang dinonaktifkan oleh administrator.
+            </div>
+            <div id="guest-allowed-notice" class="guest-note">
+                Tamu dapat melihat, mengunggah, dan mengunduh berkas.
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= APP ================= -->
+    <div id="app-view">
+        <header class="topbar">
+            <div class="topbar-inner">
+                <div class="brand">Klaster Penyimpanan<span>Koordinator &middot; master&ndash;worker</span></div>
+                <div class="session">
+                    <div class="role" id="session-role"></div>
+                    <button class="btn btn-sm" id="btn-logout" type="button">Keluar</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Access control (admin only) -->
+            <section id="admin-panel" style="display:none;">
+                <div class="section-head">
+                    <div>
+                        <div class="section-title">Kontrol akses</div>
+                        <div class="section-desc">Atur apa yang boleh dilakukan pengguna tamu.</div>
+                    </div>
+                </div>
+                <div class="settings">
+                    <div class="setting">
+                        <div>
+                            <div class="setting-title">Izinkan akses tamu</div>
+                            <div class="setting-desc">Jika dimatikan, tamu tidak bisa masuk dan sesi tamu yang sedang aktif langsung diakhiri.</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-guest-switch">
+                            <span class="track"></span>
+                        </label>
+                    </div>
+                    <div class="setting">
+                        <div>
+                            <div class="setting-title">Mode eksperimen tamu</div>
+                            <div class="setting-desc">Izinkan tamu menghapus berkas dan menyimulasikan kegagalan node, tanpa memberikan akun administrator.</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-authority-switch">
+                            <span class="track"></span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <div class="summary">
+                <div class="summary-item">
+                    <div class="summary-label">Node aktif</div>
+                    <div class="summary-value" id="sum-nodes">&ndash;</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Faktor replikasi</div>
+                    <div class="summary-value" id="sum-rf">&ndash;</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Jumlah berkas</div>
+                    <div class="summary-value" id="sum-files">&ndash;</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Berkas tersedia</div>
+                    <div class="summary-value" id="sum-available">&ndash;</div>
+                </div>
+            </div>
+
+            <!-- Nodes -->
+            <section>
+                <div class="section-head">
+                    <div>
+                        <div class="section-title">Node penyimpanan</div>
+                        <div class="section-desc" id="nodes-desc">Tiga VM worker yang menyimpan replika berkas.</div>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Node</th>
+                                <th class="hide-sm">Endpoint</th>
+                                <th>Status</th>
+                                <th class="right">Replika</th>
+                                <th class="right hide-sm">Penyimpanan</th>
+                                <th class="right" id="nodes-action-head">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nodes-tbody">
+                            <tr><td colspan="6" class="empty">Memuat&hellip;</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Files -->
+            <section>
+                <div class="section-head">
+                    <div>
+                        <div class="section-title">Berkas</div>
+                        <div class="section-desc">Setiap berkas disalin ke beberapa node. Unduhan otomatis beralih ke replika yang masih aktif.</div>
+                    </div>
+                    <button class="btn btn-sm btn-ghost-danger" id="btn-clear-all" type="button" style="display:none;">Hapus semua</button>
+                </div>
+
+                <label class="dropzone" id="drop-zone" for="file-input">
+                    <div class="dz-icon">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 15V4"/><path d="M7.5 8.5 12 4l4.5 4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="dropzone-main" id="drop-main">Seret berkas ke sini, atau klik untuk memilih</div>
+                        <div class="dropzone-sub">Berkas akan direplikasi ke node yang aktif.</div>
+                    </div>
+                    <input type="file" id="file-input" hidden>
+                </label>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama</th>
+                                <th class="right">Ukuran</th>
+                                <th class="hide-sm">Diunggah</th>
+                                <th>Lokasi replika</th>
+                                <th class="right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="files-tbody"></tbody>
+                    </table>
+                    <div class="empty" id="empty-files" style="display:none;">Belum ada berkas. Unggah satu untuk memulai.</div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Confirm modal -->
+    <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-box">
+            <div class="modal-title" id="modal-title"></div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-actions">
+                <button class="btn" id="modal-cancel" type="button">Batal</button>
+                <button class="btn btn-danger" id="modal-confirm" type="button">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-stack" aria-live="polite"></div>
+
+    <script>
+        // ---------------- State ----------------
+        let currentToken = localStorage.getItem('auth_token') || null;
+        let currentRole = localStorage.getItem('auth_role') || null;
+        let currentUsername = localStorage.getItem('auth_username') || null;
+        let guestAccessEnabled = true;
+        let guestAuthorityEnabled = false;
+        let replicationFactor = null;
+
+        let onlineNodeIds = [];
+        let lastNodes = [];
+        let lastFiles = [];
+        let refreshInterval = null;
+        let uploading = false;
+
+        const $ = (id) => document.getElementById(id);
+
+        function userCanExperiment() {
+            return currentRole === 'admin' || (currentRole === 'guest' && guestAuthorityEnabled);
+        }
+
+        function escapeHtml(str) {
+            return String(str ?? '').replace(/[&<>"']/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[c]));
+        }
+
+        // ---------------- Fetch wrapper ----------------
+        // Attaches the session token and bypasses the ngrok browser warning page.
+        const originalFetch = window.fetch;
+        window.fetch = async function (url, options = {}) {
+            options.headers = options.headers || {};
+            if (options.headers instanceof Headers) {
+                options.headers.set('ngrok-skip-browser-warning', 'true');
+                if (currentToken) options.headers.set('X-Auth-Token', currentToken);
+            } else {
+                options.headers['ngrok-skip-browser-warning'] = 'true';
+                if (currentToken) options.headers['X-Auth-Token'] = currentToken;
+            }
+
+            const response = await originalFetch(url, options);
+            const isLogin = String(url).includes('/api/auth/login');
+
+            if (response.status === 401 && currentToken && !isLogin) {
+                const data = await response.clone().json().catch(() => ({}));
+                showToast(data.detail || 'Sesi berakhir. Silakan masuk kembali.', 'error');
+                handleLogout(false);
+            } else if (response.status === 403 && currentToken && !isLogin) {
+                const data = await response.clone().json().catch(() => ({}));
+                if (data.detail && data.detail.includes('Akses Guest telah dinonaktifkan')) {
+                    showToast('Akses tamu telah dinonaktifkan oleh administrator.', 'error');
+                    handleLogout(false);
+                }
+            }
+            return response;
+        };
+
+        // Parses JSON safely; ngrok/proxy error pages return HTML instead of JSON.
+        async function safeJson(response) {
+            const text = await response.text();
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                if (text.includes('<!DOCTYPE') || text.includes('ERR_NGROK')) {
+                    throw new Error(`Server tidak dapat dijangkau (${response.status}). Tunnel mungkin sedang offline.`);
+                }
+                throw new Error(`Respons server tidak valid (${response.status}).`);
+            }
+        }
+
+        // ---------------- Auth ----------------
+        async function initAuth() {
+            try {
+                const res = await fetch('/api/auth/status');
+                const data = await safeJson(res);
+                guestAccessEnabled = data.guest_access_enabled;
+                guestAuthorityEnabled = data.guest_authority_enabled || false;
+            } catch (err) {
+                console.error('Gagal memeriksa status auth:', err);
+            }
+            updateLoginGuestButton(guestAccessEnabled);
+
+            if (currentToken) {
+                try {
+                    const res = await fetch('/api/auth/me');
+                    if (res.ok) {
+                        const me = await safeJson(res);
+                        currentRole = me.role;
+                        currentUsername = me.username;
+                        guestAccessEnabled = me.guest_access_enabled;
+                        guestAuthorityEnabled = me.guest_authority_enabled || false;
+                        showAppView();
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Verifikasi sesi gagal:', err);
+                }
+            }
+            showLoginView();
+        }
+
+        function updateLoginGuestButton(enabled) {
+            $('btn-login-guest').disabled = !enabled;
+            $('guest-blocked-notice').style.display = enabled ? 'none' : 'block';
+            $('guest-allowed-notice').style.display = enabled ? 'block' : 'none';
+        }
+
+        function showLoginView() {
+            if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
+            $('app-view').style.display = 'none';
+            $('login-view').style.display = 'flex';
+        }
+
+        function renderSessionInfo() {
+            const role = $('session-role');
+            if (currentRole === 'admin') {
+                role.innerHTML = `Administrator &middot; <strong>${escapeHtml(currentUsername)}</strong>`;
+            } else {
+                role.innerHTML = guestAuthorityEnabled
+                    ? 'Tamu &middot; <strong>mode eksperimen</strong>'
+                    : 'Tamu &middot; <strong>hanya lihat &amp; unggah</strong>';
+            }
+            $('btn-clear-all').style.display = userCanExperiment() ? 'inline-block' : 'none';
+        }
+
+        function showAppView() {
+            $('login-view').style.display = 'none';
+            $('app-view').style.display = 'block';
+
+            if (currentRole === 'admin') {
+                $('admin-panel').style.display = 'block';
+                $('toggle-guest-switch').checked = guestAccessEnabled;
+                $('toggle-authority-switch').checked = guestAuthorityEnabled;
+            } else {
+                $('admin-panel').style.display = 'none';
+            }
+            renderSessionInfo();
+
+            refreshAll();
+            if (!refreshInterval) refreshInterval = setInterval(refreshAll, 3000);
+        }
+
+        function storeSession(data) {
+            currentToken = data.token;
+            currentRole = data.role;
+            currentUsername = data.username;
+            guestAccessEnabled = data.guest_access_enabled;
+            guestAuthorityEnabled = data.guest_authority_enabled || false;
+            localStorage.setItem('auth_token', currentToken);
+            localStorage.setItem('auth_role', currentRole);
+            localStorage.setItem('auth_username', currentUsername);
+        }
+
+        async function handleAdminLogin(event) {
+            event.preventDefault();
+            const username = $('admin-user').value.trim();
+            const password = $('admin-pass').value;
+            const btn = $('btn-submit-admin');
+            btn.disabled = true;
+            btn.textContent = 'Memverifikasi…';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: 'admin', username, password })
+                });
+                const data = await safeJson(res);
+                if (res.ok) {
+                    storeSession(data);
+                    $('admin-pass').value = '';
+                    showAppView();
+                } else {
+                    showToast(data.detail || 'Gagal masuk.', 'error');
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Masuk';
+            }
+        }
+
+        async function handleGuestLogin() {
+            const btn = $('btn-login-guest');
+            btn.disabled = true;
+            btn.textContent = 'Menghubungkan…';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: 'guest' })
+                });
+                const data = await safeJson(res);
+                if (res.ok) {
+                    storeSession(data);
+                    showAppView();
+                } else {
+                    showToast(data.detail || 'Akses tamu ditolak.', 'error');
+                    guestAccessEnabled = false;
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                btn.textContent = 'Masuk sebagai tamu';
+                updateLoginGuestButton(guestAccessEnabled);
+            }
+        }
+
+        async function handleLogout(notifyServer = true) {
+            if (notifyServer && currentToken) {
+                try { await fetch('/api/auth/logout', { method: 'POST' }); } catch (e) {}
+            }
+            currentToken = null;
+            currentRole = null;
+            currentUsername = null;
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_role');
+            localStorage.removeItem('auth_username');
+            initAuth();
+        }
+
+        // ---------------- Admin settings ----------------
+        async function toggleGuestAccess(checked) {
+            const sw = $('toggle-guest-switch');
+            try {
+                const res = await fetch('/api/admin/guest-access', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled: checked })
+                });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.detail || 'Gagal mengubah akses tamu.');
+                guestAccessEnabled = data.guest_access_enabled;
+                showToast(guestAccessEnabled
+                    ? 'Akses tamu diizinkan.'
+                    : 'Akses tamu diblokir. Semua sesi tamu diakhiri.', 'success');
+            } catch (err) {
+                sw.checked = !checked;
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function toggleGuestAuthority(checked) {
+            const sw = $('toggle-authority-switch');
+            try {
+                const res = await fetch('/api/admin/guest-authority', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled: checked })
+                });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.detail || 'Gagal mengubah mode eksperimen.');
+                guestAuthorityEnabled = data.guest_authority_enabled;
+                showToast(guestAuthorityEnabled
+                    ? 'Mode eksperimen tamu diaktifkan.'
+                    : 'Mode eksperimen tamu dinonaktifkan.', 'success');
+            } catch (err) {
+                sw.checked = !checked;
+                showToast(err.message, 'error');
+            }
+        }
+
+        // ---------------- Data ----------------
+        function refreshAll() {
+            fetchSystemInfo();
+            fetchNodes();
+            fetchFiles();
+        }
+
+        async function fetchSystemInfo() {
+            try {
+                const res = await fetch('/api/system/info');
+                if (!res.ok) return;
+                const info = await safeJson(res);
+                guestAccessEnabled = info.guest_access_enabled;
+                replicationFactor = info.replication_factor;
+                $('sum-rf').textContent = replicationFactor ?? '–';
+
+                if (info.guest_authority_enabled !== undefined && info.guest_authority_enabled !== guestAuthorityEnabled) {
+                    guestAuthorityEnabled = info.guest_authority_enabled;
+                    if (currentRole === 'guest') {
+                        showToast(guestAuthorityEnabled
+                            ? 'Administrator mengaktifkan mode eksperimen. Anda kini bisa menghapus berkas dan menyimulasikan kegagalan node.'
+                            : 'Administrator menonaktifkan mode eksperimen.', 'info');
+                    }
+                    renderSessionInfo();
+                    renderNodes(lastNodes);
+                    renderFiles(lastFiles);
+                }
+            } catch (err) {
+                console.error('Gagal memuat info sistem:', err);
+            }
+        }
+
+        async function fetchNodes() {
+            try {
+                const res = await fetch('/api/nodes');
+                if (res.ok) renderNodes(await safeJson(res));
+            } catch (err) {
+                console.error('Gagal memuat node:', err);
+            }
+        }
+
+        async function fetchFiles() {
+            try {
+                const res = await fetch('/api/files');
+                if (res.ok) renderFiles(await safeJson(res));
+            } catch (err) {
+                console.error('Gagal memuat berkas:', err);
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (!bytes) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
+            const val = bytes / Math.pow(k, i);
+            return `${i === 0 ? val : val.toFixed(1)} ${sizes[i]}`;
+        }
+
+        function formatDate(raw) {
+            if (!raw) return '–';
+            const d = new Date(raw);
+            if (isNaN(d)) return '–';
+            return d.toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        // ---------------- Rendering ----------------
+        // "Storage Node 1 (VirtualBox VM)" -> "Node 1"
+        function shortNodeName(name) {
+            return String(name || '').replace(/\s*\(.*?\)\s*$/, '').replace(/^Storage\s+/i, '');
+        }
+
+        function renderNodes(nodes) {
+            lastNodes = nodes || [];
+            const tbody = $('nodes-tbody');
+            const canControl = userCanExperiment();
+            onlineNodeIds = lastNodes.filter(n => n.status === 'online').map(n => n.id);
+
+            $('sum-nodes').textContent = `${onlineNodeIds.length} / ${lastNodes.length}`;
+            $('nodes-action-head').textContent = canControl ? 'Simulasi' : '';
+            $('nodes-desc').textContent = canControl
+                ? 'Matikan node untuk menyimulasikan kegagalan dan amati failover pada unduhan.'
+                : 'Tiga VM worker yang menyimpan replika berkas.';
+
+            if (lastNodes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty">Tidak ada node terdaftar.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = lastNodes.map(node => {
+                const online = node.status === 'online';
+                const action = canControl
+                    ? `<button class="btn btn-sm ${online ? 'btn-ghost-danger' : ''}" data-action="toggle-node" data-id="${escapeHtml(node.id)}">${online ? 'Matikan' : 'Nyalakan'}</button>`
+                    : '';
+                return `
+                    <tr class="${online ? '' : 'is-offline'}">
+                        <td><span class="node-name">${escapeHtml(shortNodeName(node.name))}</span> <span class="mono faint">${escapeHtml(node.id)}</span></td>
+                        <td class="mono hide-sm">${escapeHtml(node.url)}</td>
+                        <td><span class="status ${online ? 'ok' : 'bad'}"><span class="dot ${online ? 'ok' : 'bad'}"></span>${online ? 'Aktif' : 'Mati'}</span></td>
+                        <td class="right mono">${online ? node.file_count : '–'}</td>
+                        <td class="right mono hide-sm">${online ? formatBytes(node.total_size_bytes) : '–'}</td>
+                        <td class="actions">${action}</td>
+                    </tr>`;
+            }).join('');
+        }
+
+        function renderFiles(filesData) {
+            lastFiles = Array.isArray(filesData) ? filesData : Object.values(filesData || {});
+            const tbody = $('files-tbody');
+            const canControl = userCanExperiment();
+
+            const availableCount = lastFiles.filter(f => (f.nodes || []).some(n => onlineNodeIds.includes(n))).length;
+            $('sum-files').textContent = lastFiles.length;
+            $('sum-available').textContent = `${availableCount} / ${lastFiles.length}`;
+
+            if (lastFiles.length === 0) {
+                tbody.innerHTML = '';
+                $('empty-files').style.display = 'block';
+                return;
+            }
+            $('empty-files').style.display = 'none';
+
+            tbody.innerHTML = lastFiles.map(file => {
+                const nodes = file.nodes || [];
+                const available = nodes.some(n => onlineNodeIds.includes(n));
+                const replicas = nodes.length
+                    ? nodes.map(n => onlineNodeIds.includes(n)
+                        ? `<span>${escapeHtml(n)}</span>`
+                        : `<span class="replica-off" title="Node sedang mati">${escapeHtml(n)}</span>`).join(', ')
+                    : '<span class="replica-none">Tidak ada replika</span>';
+
+                const id = escapeHtml(file.file_id);
+                const name = escapeHtml(file.filename);
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="file-name">${name}</div>
+                            ${available ? '' : '<div class="file-unavailable">Semua replika sedang mati</div>'}
+                        </td>
+                        <td class="right mono">${formatBytes(file.size)}</td>
+                        <td class="muted hide-sm">${formatDate(file.created_at || file.uploaded_at)}</td>
+                        <td class="replicas">${replicas}</td>
+                        <td class="actions">
+                            <button class="btn btn-sm" data-action="download" data-id="${id}" data-name="${name}" ${available ? '' : 'disabled'}>Unduh</button>
+                            ${canControl ? `<button class="btn btn-sm btn-ghost-danger" data-action="delete" data-id="${id}" data-name="${name}">Hapus</button>` : ''}
+                        </td>
+                    </tr>`;
+            }).join('');
+        }
+
+        // ---------------- Actions ----------------
+        async function toggleNode(nodeId, btn) {
+            if (!userCanExperiment()) return;
+            if (btn) btn.disabled = true;
+            try {
+                const res = await fetch(`/api/nodes/${encodeURIComponent(nodeId)}/toggle`, { method: 'POST' });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.detail || `Gagal mengubah status ${nodeId}.`);
+                showToast(data.is_enabled
+                    ? `${nodeId} dinyalakan kembali.`
+                    : `${nodeId} dimatikan. Kegagalan node disimulasikan.`, 'success');
+                fetchNodes().then(fetchFiles);
+            } catch (err) {
+                showToast(err.message, 'error');
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        async function triggerDownload(fileId, filename) {
+            try {
+                const res = await fetch(`/api/download/${encodeURIComponent(fileId)}`);
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    throw new Error(data.detail || 'Unduhan gagal.');
+                }
+                const servedBy = res.headers.get('X-Served-By');
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+                showToast(servedBy ? `${filename} diunduh dari ${servedBy}.` : `${filename} diunduh.`, 'success');
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function handleFileUpload(file) {
+            if (!file || uploading) return;
+            uploading = true;
+            const zone = $('drop-zone');
+            const label = $('drop-main');
+            zone.classList.add('busy');
+            label.textContent = `Mengunggah ${file.name}…`;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.detail || 'Unggahan gagal.');
+                showToast(`${file.name} direplikasi ke ${data.actual_replicas} node.`, 'success');
+                refreshAll();
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                uploading = false;
+                zone.classList.remove('busy');
+                label.textContent = 'Seret berkas ke sini, atau klik untuk memilih';
+                $('file-input').value = '';
+            }
+        }
+
+        async function deleteFile(fileId, filename) {
+            if (!userCanExperiment()) return;
+            const ok = await confirmDialog('Hapus berkas?', `"${filename}" akan dihapus dari semua node replika.`, 'Hapus');
+            if (!ok) return;
+            try {
+                const res = await fetch(`/api/files/${encodeURIComponent(fileId)}`, { method: 'DELETE' });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.detail || 'Gagal menghapus berkas.');
+                showToast(`${filename} dihapus.`, 'success');
+                refreshAll();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function clearAllFiles() {
+            if (!userCanExperiment()) return;
+            const ok = await confirmDialog(
+                'Hapus semua berkas?',
+                'Semua berkas di ketiga node penyimpanan akan dihapus. Tindakan ini tidak bisa dibatalkan.',
+                'Hapus semua'
+            );
+            if (!ok) return;
+            try {
+                const res = await fetch('/api/files/all', { method: 'DELETE' });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.detail || 'Gagal menghapus berkas.');
+                showToast(`${data.deleted_count} berkas dihapus dari klaster.`, 'success');
+                refreshAll();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        // ---------------- Modal ----------------
+        function confirmDialog(title, body, confirmLabel = 'Hapus') {
+            return new Promise(resolve => {
+                const modal = $('modal');
+                $('modal-title').textContent = title;
+                $('modal-body').textContent = body;
+                $('modal-confirm').textContent = confirmLabel;
+                modal.classList.add('open');
+                $('modal-cancel').focus();
+
+                const close = (result) => {
+                    modal.classList.remove('open');
+                    $('modal-confirm').onclick = null;
+                    $('modal-cancel').onclick = null;
+                    modal.onclick = null;
+                    document.removeEventListener('keydown', onKey);
+                    resolve(result);
+                };
+                const onKey = (e) => { if (e.key === 'Escape') close(false); };
+
+                $('modal-confirm').onclick = () => close(true);
+                $('modal-cancel').onclick = () => close(false);
+                modal.onclick = (e) => { if (e.target === modal) close(false); };
+                document.addEventListener('keydown', onKey);
+            });
+        }
+
+        // ---------------- Toast ----------------
+        function showToast(message, type = 'info') {
+            const stack = $('toast-stack');
+            const el = document.createElement('div');
+            el.className = `toast ${type}`;
+            el.textContent = message;
+            stack.appendChild(el);
+            while (stack.children.length > 3) stack.firstChild.remove();
+            requestAnimationFrame(() => el.classList.add('show'));
+            setTimeout(() => {
+                el.classList.remove('show');
+                setTimeout(() => el.remove(), 200);
+            }, 3000);
+        }
+
+        // ---------------- Wiring ----------------
+        document.addEventListener('DOMContentLoaded', () => {
+            $('admin-form').addEventListener('submit', handleAdminLogin);
+            $('btn-login-guest').addEventListener('click', handleGuestLogin);
+            $('btn-logout').addEventListener('click', () => handleLogout(true));
+            $('btn-clear-all').addEventListener('click', clearAllFiles);
+            $('toggle-guest-switch').addEventListener('change', e => toggleGuestAccess(e.target.checked));
+            $('toggle-authority-switch').addEventListener('change', e => toggleGuestAuthority(e.target.checked));
+            $('file-input').addEventListener('change', e => handleFileUpload(e.target.files[0]));
+
+            // Delegated table actions
+            document.addEventListener('click', e => {
+                const btn = e.target.closest('[data-action]');
+                if (!btn || btn.disabled) return;
+                const { action, id, name } = btn.dataset;
+                if (action === 'toggle-node') toggleNode(id, btn);
+                else if (action === 'download') triggerDownload(id, name);
+                else if (action === 'delete') deleteFile(id, name);
+            });
+
+            // Drag & drop
+            const zone = $('drop-zone');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
+                document.body.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); });
+            });
+            ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, () => zone.classList.add('drag')));
+            ['dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, () => zone.classList.remove('drag')));
+            zone.addEventListener('drop', e => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) handleFileUpload(files[0]);
+            });
+
+            initAuth();
+        });
+    </script>
+</body>
+</html>

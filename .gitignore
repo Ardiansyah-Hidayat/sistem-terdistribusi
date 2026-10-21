@@ -1,0 +1,44 @@
+# VirtualBox VMs & Disk Images
+*.vdi
+*.vbox
+*.vbox-prev
+*.sav
+*.viso
+storage-node-*/
+
+# ISO & Large Archives
+*.iso
+ubuntu-*.iso
+*.zip
+*.tar.gz
+*.rar
+
+# Binaries & Executables
+*.exe
+ngrok.exe
+cloudflared.exe
+
+# Runtime State & Logs
+storage_data/
+*.log
+ngrok.log
+public_url.txt
+ngrok_config.txt
+auth_state.json
+
+# Python Bytecode & Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+venv/
+.venv/
+env/
+
+# IDE & OS Files
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+.DS_Store
