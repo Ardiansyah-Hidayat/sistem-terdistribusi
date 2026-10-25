@@ -218,6 +218,9 @@ async def upload_file(file: UploadFile = File(...), session: dict = Depends(requ
                 )
                 if res.status_code == 200:
                     successful_nodes.append(node_id)
+                    if node_id in node_tracker.node_status:
+                        node_tracker.node_status[node_id]["file_count"] = node_tracker.node_status[node_id].get("file_count", 0) + 1
+                        node_tracker.node_status[node_id]["total_size_bytes"] = node_tracker.node_status[node_id].get("total_size_bytes", 0) + size
             except Exception as e:
                 print(f"[Coordinator Upload] Failed to write to {node_id}: {e}")
 

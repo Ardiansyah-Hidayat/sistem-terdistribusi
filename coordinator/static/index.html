@@ -793,10 +793,10 @@
         }
 
         // ---------------- Data ----------------
-        function refreshAll() {
+        async function refreshAll() {
             fetchSystemInfo();
-            fetchNodes();
-            fetchFiles();
+            await fetchNodes();
+            await fetchFiles();
         }
 
         async function fetchSystemInfo() {
@@ -896,6 +896,10 @@
                         <td class="actions">${action}</td>
                     </tr>`;
             }).join('');
+
+            if (lastFiles.length > 0) {
+                renderFiles(lastFiles);
+            }
         }
 
         function renderFiles(filesData) {
