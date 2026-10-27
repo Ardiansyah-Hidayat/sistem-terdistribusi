@@ -204,6 +204,28 @@ def build_ui_and_diagram_doc():
         width_inches=6.1
     )
 
+    # -------------------------------------------------------------------------
+    # 7. Use Case Diagram Sistem (3 Storage Node)
+    # -------------------------------------------------------------------------
+    add_section_item(
+        doc,
+        subheading="7. Use Case Diagram Sistem (Administrator, Tamu, & Klaster 3 Node)",
+        image_path=os.path.join("diagrams", "use_case_diagram.png"),
+        caption="Gambar 7. Use Case Diagram Sistem Klaster Penyimpanan Berkas Terdistribusi.",
+        explanation_paragraphs=[
+            "Use Case Diagram ini memodelkan interaksi antara aktor pengguna (Administrator dan Pengguna Tamu) di sisi "
+            "kiri serta tiga aktor simpul pekerja (Storage Node 1, Storage Node 2, dan Storage Node 3) di sisi kanan "
+            "melalui Master Coordinator. Pengguna Tamu dapat masuk sebagai tamu, melihat status kesehatan ketiga node, "
+            "melihat daftar berkas, mengunggah berkas, serta mengunduh berkas. Administrator memiliki seluruh hak akses "
+            "tersebut ditambah wewenang mengelola akses/mode eksperimen tamu, menyimulasikan matikan/nyalakan Node 1, "
+            "Node 2, atau Node 3, serta menghapus berkas. Proses unggah berkas secara wajib («include») menjalankan "
+            "replikasi Least-Loaded (RF = 2) ke 2 dari 3 Storage Node aktif, sedangkan proses unduh berkas memiliki "
+            "perluasan («extend») berupa pengalihan unduhan otomatis (automatic failover) ke node cadangan apabila "
+            "salah satu dari Node 1, Node 2, atau Node 3 sedang mengalami kegagalan."
+        ],
+        width_inches=6.2
+    )
+
     out_path = "Dokumentasi_UI_dan_Diagram_Sistem.docx"
     doc.save(out_path)
     print(f"[OK] Saved {out_path}")
