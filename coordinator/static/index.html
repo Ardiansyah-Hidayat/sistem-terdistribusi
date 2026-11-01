@@ -81,6 +81,9 @@
         .btn-ghost-danger { color: var(--bad); }
         .btn-ghost-danger:hover:not(:disabled) { background: var(--bad-soft); border-color: #fecaca; }
 
+        .btn-ghost { background: transparent; border-color: var(--border-strong); color: var(--navy); }
+        .btn-ghost:hover:not(:disabled) { background: var(--surface-muted); }
+
         .btn-sm { height: 28px; padding: 0 10px; font-size: 12.5px; }
 
         .btn-link {
@@ -233,6 +236,124 @@
         .replica-none { color: var(--bad); font-family: var(--sans); font-size: 13px; }
 
         .file-unavailable { color: var(--bad); font-size: 12px; margin-top: 2px; }
+
+        /* ---------- File thumbnail & cell ---------- */
+        .file-cell { display: flex; align-items: center; gap: 12px; }
+        .file-thumb {
+            width: 44px; height: 44px; border-radius: 6px;
+            background: var(--surface-muted); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; overflow: hidden; position: relative; user-select: none;
+            box-sizing: border-box;
+        }
+        .file-thumb.is-image {
+            cursor: pointer; background: #0b1120;
+            transition: transform .12s, border-color .12s, box-shadow .12s;
+        }
+        .file-thumb.is-image:hover {
+            transform: scale(1.08); border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(37,99,235,.2);
+        }
+        .file-thumb-img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+        .file-thumb-placeholder {
+            font-family: var(--mono); font-size: 10px; font-weight: 700; color: #94a3b8;
+        }
+        .file-thumb-badge {
+            font-family: var(--mono); font-size: 10px; font-weight: 700;
+            letter-spacing: .02em; text-transform: uppercase;
+            padding: 2px 6px; border-radius: 4px;
+        }
+        .badge-pdf { background: #fee2e2; color: #dc2626; }
+        .badge-csv { background: #dcfce7; color: #15803d; }
+        .badge-doc { background: #dbeafe; color: #2563eb; }
+        .badge-zip { background: #fef3c7; color: #b45309; }
+        .badge-generic { background: #f1f5f9; color: #475569; }
+        .file-info-col { display: flex; flex-direction: column; min-width: 0; }
+        .file-thumb.offline { opacity: .4; filter: grayscale(1); cursor: not-allowed; }
+
+        /* Dropzone live preview */
+        .dropzone-preview {
+            display: flex; align-items: center; gap: 12px;
+            padding: 8px 14px; background: #ffffff;
+            border: 1px solid #bfdbfe; border-radius: 8px;
+            max-width: 380px; margin-top: 10px;
+        }
+        .dropzone-preview-img {
+            width: 44px; height: 44px; border-radius: 6px;
+            object-fit: cover; border: 1px solid var(--border);
+        }
+        .dropzone-preview-info { text-align: left; overflow: hidden; min-width: 0; }
+        .dropzone-preview-name {
+            font-weight: 600; font-size: 12.5px; color: var(--navy);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .dropzone-preview-size { font-size: 11px; color: var(--text-2); font-family: var(--mono); }
+
+        /* Preview Modal */
+        #preview-modal {
+            position: fixed; inset: 0; z-index: 50;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(4px);
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        #preview-modal.open { display: flex; }
+        .preview-dialog {
+            width: 100%; max-width: 780px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: 0 20px 48px rgba(0,0,0,.25);
+            display: flex; flex-direction: column;
+            max-height: 90vh; overflow: hidden;
+            animation: modalPop .15s ease-out;
+        }
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .preview-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 18px; border-bottom: 1px solid var(--border);
+            background: #ffffff;
+        }
+        .preview-title-box { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .preview-filename { font-weight: 600; font-size: 14px; color: var(--navy); word-break: break-all; }
+        .preview-meta { font-size: 12px; color: var(--text-2); font-family: var(--mono); }
+        .preview-close-btn {
+            background: transparent; border: none; font-size: 22px; color: var(--text-2);
+            cursor: pointer; padding: 2px 8px; border-radius: 6px; line-height: 1;
+            margin-left: 12px; transition: background .12s, color .12s;
+        }
+        .preview-close-btn:hover { background: var(--surface-muted); color: var(--text); }
+        .preview-stage {
+            padding: 24px;
+            background: #0b1120;
+            display: flex; align-items: center; justify-content: center;
+            min-height: 280px; max-height: calc(85vh - 120px);
+            overflow: auto;
+        }
+        .preview-stage img {
+            max-width: 100%; max-height: calc(85vh - 160px);
+            object-fit: contain; border-radius: 6px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.4);
+        }
+        .preview-stage .preview-loading {
+            color: #94a3b8; font-size: 13px; font-family: var(--mono);
+        }
+        .preview-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 18px; border-top: 1px solid var(--border);
+            background: var(--surface-muted); font-size: 12.5px;
+            gap: 12px; flex-wrap: wrap;
+        }
+        .preview-served-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-family: var(--mono); font-size: 12px; color: var(--text-2);
+        }
+        .preview-served-badge strong { color: var(--navy); }
+        .preview-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 
         .empty {
             padding: 36px 16px;
@@ -489,7 +610,14 @@
                     </div>
                     <div>
                         <div class="dropzone-main" id="drop-main">Seret berkas ke sini, atau klik untuk memilih</div>
-                        <div class="dropzone-sub">Berkas akan direplikasi ke node yang aktif.</div>
+                        <div class="dropzone-sub" id="drop-sub">Berkas akan direplikasi ke node yang aktif.</div>
+                    </div>
+                    <div class="dropzone-preview" id="dz-preview-card" style="display:none;" onclick="event.stopPropagation()">
+                        <img id="dz-preview-img" class="dropzone-preview-img" alt="Pratinjau unggahan">
+                        <div class="dropzone-preview-info">
+                            <div class="dropzone-preview-name" id="dz-preview-name"></div>
+                            <div class="dropzone-preview-size" id="dz-preview-size"></div>
+                        </div>
                     </div>
                     <input type="file" id="file-input" hidden>
                 </label>
@@ -498,7 +626,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Nama</th>
+                                <th>Nama &amp; Pratinjau</th>
                                 <th class="right">Ukuran</th>
                                 <th class="hide-sm">Diunggah</th>
                                 <th>Lokasi replika</th>
@@ -522,6 +650,29 @@
             <div class="modal-actions">
                 <button class="btn" id="modal-cancel" type="button">Batal</button>
                 <button class="btn btn-danger" id="modal-confirm" type="button">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="preview-modal" role="dialog" aria-modal="true" aria-labelledby="preview-filename">
+        <div class="preview-dialog">
+            <div class="preview-header">
+                <div class="preview-title-box">
+                    <div class="preview-filename" id="preview-filename">Pratinjau Berkas</div>
+                    <div class="preview-meta" id="preview-meta"></div>
+                </div>
+                <button class="preview-close-btn" id="preview-close" type="button" aria-label="Tutup">&times;</button>
+            </div>
+            <div class="preview-stage" id="preview-stage">
+                <div class="preview-loading">Memuat pratinjau…</div>
+            </div>
+            <div class="preview-footer">
+                <span class="preview-served-badge" id="preview-served-by">Menghubungkan klaster…</span>
+                <div class="preview-actions">
+                    <button class="btn btn-sm btn-primary" id="preview-btn-download" type="button">Unduh</button>
+                    <button class="btn btn-sm" id="preview-btn-close" type="button">Tutup</button>
+                </div>
             </div>
         </div>
     </div>
@@ -902,6 +1053,23 @@
             }
         }
 
+        const previewCache = new Map(); // file_id -> blobUrl
+
+        function isImageFile(filename, contentType) {
+            if (contentType && contentType.startsWith('image/')) return true;
+            return /\.(png|jpe?g|gif|webp|svg|bmp|ico)$/i.test(filename || '');
+        }
+
+        function getFileBadge(filename, contentType) {
+            const ext = (filename || '').split('.').pop().toLowerCase();
+            if (ext === 'pdf' || (contentType && contentType.includes('pdf'))) return { text: 'PDF', cls: 'badge-pdf' };
+            if (['csv', 'xls', 'xlsx'].includes(ext) || (contentType && contentType.includes('csv'))) return { text: 'CSV', cls: 'badge-csv' };
+            if (['doc', 'docx'].includes(ext)) return { text: 'DOC', cls: 'badge-doc' };
+            if (['zip', 'rar', 'tar', 'gz', '7z'].includes(ext)) return { text: 'ZIP', cls: 'badge-zip' };
+            if (['txt', 'md', 'log'].includes(ext)) return { text: 'TXT', cls: 'badge-generic' };
+            return { text: ext ? ext.slice(0, 4).toUpperCase() : 'FILE', cls: 'badge-generic' };
+        }
+
         function renderFiles(filesData) {
             lastFiles = Array.isArray(filesData) ? filesData : Object.values(filesData || {});
             const tbody = $('files-tbody');
@@ -929,22 +1097,102 @@
 
                 const id = escapeHtml(file.file_id);
                 const name = escapeHtml(file.filename);
+                const isImg = isImageFile(file.filename, file.content_type);
+                const badge = getFileBadge(file.filename, file.content_type);
+
+                let thumbHtml = '';
+                if (isImg) {
+                    const srcUrl = `/api/download/${encodeURIComponent(file.file_id)}?inline=1&token=${encodeURIComponent(currentToken || '')}`;
+                    thumbHtml = `
+                        <div class="file-thumb is-image ${available ? '' : 'offline'}" data-thumb-id="${id}" data-action="preview" data-id="${id}" data-name="${name}" title="${available ? 'Klik untuk melihat pratinjau gambar' : 'Replika sedang mati'}">
+                            ${available ? `<img class="file-thumb-img" src="${srcUrl}" alt="${name}" onload="this.style.display='block'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';" style="display:none;" />` : ''}
+                            <span class="file-thumb-placeholder">IMG</span>
+                        </div>
+                    `;
+                } else {
+                    thumbHtml = `
+                        <div class="file-thumb">
+                            <span class="file-thumb-badge ${badge.cls}">${badge.text}</span>
+                        </div>
+                    `;
+                }
 
                 return `
                     <tr>
                         <td>
-                            <div class="file-name">${name}</div>
-                            ${available ? '' : '<div class="file-unavailable">Semua replika sedang mati</div>'}
+                            <div class="file-cell">
+                                ${thumbHtml}
+                                <div class="file-info-col">
+                                    <div class="file-name">${name}</div>
+                                    ${available ? '' : '<div class="file-unavailable">Semua replika sedang mati</div>'}
+                                </div>
+                            </div>
                         </td>
                         <td class="right mono">${formatBytes(file.size)}</td>
                         <td class="muted hide-sm">${formatDate(file.created_at || file.uploaded_at)}</td>
                         <td class="replicas">${replicas}</td>
                         <td class="actions">
+                            ${isImg && available ? `<button class="btn btn-sm btn-ghost" data-action="preview" data-id="${id}" data-name="${name}">Lihat</button>` : ''}
                             <button class="btn btn-sm" data-action="download" data-id="${id}" data-name="${name}" ${available ? '' : 'disabled'}>Unduh</button>
                             ${canControl ? `<button class="btn btn-sm btn-ghost-danger" data-action="delete" data-id="${id}" data-name="${name}">Hapus</button>` : ''}
                         </td>
                     </tr>`;
             }).join('');
+        }
+
+        async function openPreviewModal(fileId, filename) {
+            const modal = $('preview-modal');
+            const title = $('preview-filename');
+            const meta = $('preview-meta');
+            const stage = $('preview-stage');
+            const served = $('preview-served-by');
+            const btnDownload = $('preview-btn-download');
+
+            title.textContent = filename;
+            const fileMeta = lastFiles.find(f => f.file_id === fileId);
+            const sizeStr = fileMeta ? formatBytes(fileMeta.size) : '';
+            const nodesStr = fileMeta && fileMeta.nodes ? `Replika: ${fileMeta.nodes.join(', ')}` : '';
+            meta.textContent = [sizeStr, nodesStr].filter(Boolean).join(' • ');
+
+            stage.innerHTML = '<div class="preview-loading">Memuat gambar dari klaster…</div>';
+            served.innerHTML = 'Menghubungkan klaster…';
+
+            btnDownload.onclick = () => triggerDownload(fileId, filename);
+            modal.classList.add('open');
+
+            const srcUrl = `/api/download/${encodeURIComponent(fileId)}?inline=1&token=${encodeURIComponent(currentToken || '')}`;
+            const img = new Image();
+            img.src = srcUrl;
+            img.alt = filename;
+            img.onload = () => {
+                stage.innerHTML = '';
+                stage.appendChild(img);
+            };
+            img.onerror = () => {
+                stage.innerHTML = '<div style="color:#ef4444;font-size:13px;padding:20px;text-align:center;">Gagal memuat pratinjau. Replika mungkin sedang mati.</div>';
+            };
+
+            // Also check served node header via fetch
+            fetch(`/api/download/${encodeURIComponent(fileId)}?inline=1`)
+                .then(r => {
+                    const servedBy = r.headers.get('X-Served-By');
+                    if (servedBy) {
+                        served.innerHTML = `Dilayani oleh node: <strong>${escapeHtml(servedBy)}</strong>`;
+                    } else {
+                        served.innerHTML = 'Pratinjau aktif';
+                    }
+                })
+                .catch(() => {
+                    served.innerHTML = 'Status node tidak diketahui';
+                });
+        }
+
+        function closePreviewModal() {
+            const modal = $('preview-modal');
+            if (modal) modal.classList.remove('open');
+            const stage = $('preview-stage');
+            if (stage) stage.innerHTML = '';
+        }
         }
 
         // ---------------- Actions ----------------
@@ -993,8 +1241,24 @@
             uploading = true;
             const zone = $('drop-zone');
             const label = $('drop-main');
+            const previewCard = $('dz-preview-card');
+            const previewImg = $('dz-preview-img');
+            const previewName = $('dz-preview-name');
+            const previewSize = $('dz-preview-size');
+
             zone.classList.add('busy');
             label.textContent = `Mengunggah ${file.name}…`;
+
+            let localBlobUrl = null;
+            if (file.type && file.type.startsWith('image/')) {
+                localBlobUrl = URL.createObjectURL(file);
+                if (previewImg && previewCard) {
+                    previewImg.src = localBlobUrl;
+                    previewName.textContent = file.name;
+                    previewSize.textContent = formatBytes(file.size);
+                    previewCard.style.display = 'flex';
+                }
+            }
 
             const formData = new FormData();
             formData.append('file', file);
@@ -1012,6 +1276,14 @@
                 zone.classList.remove('busy');
                 label.textContent = 'Seret berkas ke sini, atau klik untuk memilih';
                 $('file-input').value = '';
+                if (localBlobUrl) {
+                    setTimeout(() => {
+                        if (previewCard) previewCard.style.display = 'none';
+                        URL.revokeObjectURL(localBlobUrl);
+                    }, 1500);
+                } else if (previewCard) {
+                    previewCard.style.display = 'none';
+                }
             }
         }
 
@@ -1023,6 +1295,10 @@
                 const res = await fetch(`/api/files/${encodeURIComponent(fileId)}`, { method: 'DELETE' });
                 const data = await safeJson(res);
                 if (!res.ok) throw new Error(data.detail || 'Gagal menghapus berkas.');
+                if (previewCache.has(fileId)) {
+                    URL.revokeObjectURL(previewCache.get(fileId));
+                    previewCache.delete(fileId);
+                }
                 showToast(`${filename} dihapus.`, 'success');
                 refreshAll();
             } catch (err) {
@@ -1042,6 +1318,8 @@
                 const res = await fetch('/api/files/all', { method: 'DELETE' });
                 const data = await safeJson(res);
                 if (!res.ok) throw new Error(data.detail || 'Gagal menghapus berkas.');
+                previewCache.forEach(url => URL.revokeObjectURL(url));
+                previewCache.clear();
                 showToast(`${data.deleted_count} berkas dihapus dari klaster.`, 'success');
                 refreshAll();
             } catch (err) {
@@ -1109,6 +1387,19 @@
                 if (action === 'toggle-node') toggleNode(id, btn);
                 else if (action === 'download') triggerDownload(id, name);
                 else if (action === 'delete') deleteFile(id, name);
+                else if (action === 'preview') openPreviewModal(id, name);
+            });
+
+            // Preview modal controls
+            $('preview-close').addEventListener('click', closePreviewModal);
+            $('preview-btn-close').addEventListener('click', closePreviewModal);
+            $('preview-modal').addEventListener('click', e => {
+                if (e.target === $('preview-modal')) closePreviewModal();
+            });
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && $('preview-modal').classList.contains('open')) {
+                    closePreviewModal();
+                }
             });
 
             // Drag & drop

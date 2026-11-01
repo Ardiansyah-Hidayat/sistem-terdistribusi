@@ -242,9 +242,10 @@ async def upload_file(file: UploadFile = File(...), session: dict = Depends(requ
     }
 
 @app.get("/api/download/{file_id}")
-async def download_file(file_id: str, session: dict = Depends(require_session)):
+async def download_file(file_id: str, inline: bool = False, session: dict = Depends(require_session)):
     """
-    Download file with failover support.
+    Download or stream file with failover support.
+    inline=True streams the file for in-browser preview without prompting download.
     Accessible to both Admin and Guest.
     """
     meta = metadata_mgr.get_file(file_id)
@@ -270,8 +271,9 @@ async def download_file(file_id: str, session: dict = Depends(require_session)):
             try:
                 res = await client.get(f"{node_url}/retrieve/{file_id}")
                 if res.status_code == 200:
+                    disposition = "inline" if inline else "attachment"
                     headers = {
-                        "Content-Disposition": f'attachment; filename="{meta["filename"]}"',
+                        "Content-Disposition": f'{disposition}; filename="{meta["filename"]}"',
                         # Lets the dashboard show which replica actually served the file (failover visibility)
                         "X-Served-By": node_id,
                         "Access-Control-Expose-Headers": "X-Served-By"
@@ -288,6 +290,11 @@ async def download_file(file_id: str, session: dict = Depends(require_session)):
         status_code=503,
         detail=f"Berkas '{meta['filename']}' gagal diambil dari semua replika ({', '.join(candidate_nodes)})."
     )
+
+@app.get("/api/preview/{file_id}")
+async def preview_file(file_id: str, session: dict = Depends(require_session)):
+    """In-browser preview of file with failover support."""
+    return await download_file(file_id=file_id, inline=True, session=session)
 
 @app.delete("/api/files/all")
 async def clear_all_files(user: dict = Depends(require_admin_or_guest_authorized)):
